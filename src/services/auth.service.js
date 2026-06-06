@@ -1,8 +1,7 @@
 const userRepo = require("../repository/user.repository");
 const { userRoles } = require("../models/enums/user.enums");
-
 const { hashPassword, comparePassword } = require("../utils/password");
-const { ACCOUNT_STATUS } = require("../models/enums/user.enums");
+const { ACCOUNT_STATUS, SELLER_STATUS } = require("../models/enums/user.enums");
 const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
 
 async function register(data) {
@@ -16,10 +15,6 @@ async function register(data) {
     throw new Error("User already exists");
   }
 
-  if (!Object.values(userRoles).includes(data.role)) {
-    throw new Error("Invalid role");
-  }
-
   if (data.role === userRoles.ADMIN) {
     throw new Error("Cannot self register as admin");
   }
@@ -30,10 +25,18 @@ async function register(data) {
     name: data.name,
     email: data.email,
     phone: data.phone || null,
-    role: data.role || userRoles.CUSTOMER,
+
+    role: userRoles.USER,
+
     passwordHash: hashedPassword,
+
     accountStatus: ACCOUNT_STATUS.PENDING,
+    sellerStatus: SELLER_STATUS.NONE,
+
     isActive: true,
+
+    addresses: [],
+
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -48,13 +51,18 @@ async function register(data) {
   const refreshToken = generateRefreshToken({
     _id: result.insertedId,
   });
-
+  await userRepo.updateRefreshToken(result.insertedId, refreshToken);
   return {
     user: {
       _id: result.insertedId,
       name: user.name,
       email: user.email,
+
       role: user.role,
+
+      accountStatus: user.accountStatus,
+
+      sellerStatus: user.sellerStatus,
     },
     accessToken,
     refreshToken,
@@ -68,8 +76,8 @@ async function login(data) {
     throw new Error("Invalid credentials");
   }
 
-  if (user.accountStatus === ACCOUNT_STATUS.REJECTED) {
-    throw new Error("Account rejected");
+  if (user.accountStatus === ACCOUNT_STATUS.SUSPENDED) {
+    throw new Error("Account suspended");
   }
   if (!user.isActive) {
     throw new Error("Account deactivated");
@@ -88,13 +96,18 @@ async function login(data) {
   const refreshToken = generateRefreshToken({
     _id: user._id,
   });
-
+  await userRepo.updateRefreshToken(user._id, refreshToken);
   return {
     user: {
       _id: user._id,
       name: user.name,
       email: user.email,
+
       role: user.role,
+
+      accountStatus: user.accountStatus,
+
+      sellerStatus: user.sellerStatus,
     },
     accessToken,
     refreshToken,

@@ -1,22 +1,14 @@
 function validateRegister(data) {
   const errors = [];
-  const { userRoles } = require("../models/enums/user.enums");
 
-  if (!Object.values(userRoles).includes(data.role)) {
-    errors.push("Invalid role");
-  }
-  if (data.role === userRoles.ADMIN) {
-    errors.push("Invalid role");
-  }
+  
   if (!data.name?.trim()) {
     errors.push("Name is required");
   }
   if (!data.email?.trim()) {
     errors.push("Email is required");
   }
-  if (!data.role?.trim()) {
-    errors.push("Role is required");
-  }
+  
   const phoneRegex = /^(\+8801|01)[3-9]\d{8}$/;
 
   if (data.phone && !phoneRegex.test(data.phone)) {
