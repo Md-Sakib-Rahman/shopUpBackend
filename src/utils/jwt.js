@@ -6,7 +6,7 @@ function generateAccessToken(user) {
       userId: user._id,
       role: user.role,
     },
-    process.env.JWT_ACCESS_SECRET,
+    process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "15m" }
   );
 }
@@ -16,17 +16,17 @@ function generateRefreshToken(user) {
     {
       userId: user._id,
     },
-    process.env.JWT_REFRESH_SECRET,
+    process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" }
   );
 }
 
 function verifyAccessToken(token) {
-  return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 }
 
 function verifyRefreshToken(token) {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+  return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 }
 
 module.exports = {

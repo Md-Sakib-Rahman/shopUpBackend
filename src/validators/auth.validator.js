@@ -1,6 +1,6 @@
 function validateRegister(data) {
   const errors = [];
-  const { userRoles } = require("../enums/user.enums");
+  const { userRoles } = require("../models/enums/user.enums");
 
   if (!Object.values(userRoles).includes(data.role)) {
     errors.push("Invalid role");

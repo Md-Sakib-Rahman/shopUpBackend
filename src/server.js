@@ -2,7 +2,7 @@ require("dotenv").config();
 const http = require("http")
 const {connectDB} =require("./config/db")
 
-
+console.log("ENV CHECK:", process.env.MONGO_URI);
 const authRoutes = require("./routes/auth.routes") 
 
 
