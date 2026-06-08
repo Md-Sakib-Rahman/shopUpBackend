@@ -2,7 +2,11 @@ const userRepo = require("../repository/user.repository");
 const { userRoles } = require("../models/enums/user.enums");
 const { hashPassword, comparePassword } = require("../utils/password");
 const { ACCOUNT_STATUS, SELLER_STATUS } = require("../models/enums/user.enums");
-const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} = require("../utils/jwt");
 
 async function register(data) {
   if (!data.email || !data.password || !data.name) {
@@ -114,7 +118,38 @@ async function login(data) {
   };
 }
 
+async function refresh(refreshToken) {
+  if (!refreshToken) throw new Error("No Refresh Token");
+  const decoded = verifyRefreshToken(refreshToken);
+  const user = await userRepo.findById(decoded.userId);
+  if (!user) throw new Error("No User Found");
+  if (user.refreshToken !== refreshToken)
+    throw new Error("invalid refresh token");
+  const newAccessToken = generateAccessToken({
+    _id: user._id,
+    role: user.role,
+  });
+  const newRefreshToken = generateRefreshToken({
+    _id: user._id,
+  });
+  await userRepo.updateRefreshToken(user._id, newRefreshToken);
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  };
+}
+
+async function logout(userId) {
+  await userRepo.clearRefreshToken(userId);
+
+  return {
+    message: "Logged out successfully",
+  };
+}
+
 module.exports = {
   register,
   login,
+  refresh,
+  logout,
 };

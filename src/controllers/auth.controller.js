@@ -65,8 +65,49 @@ async function login(req, res) {
     });
   }
 }
+async function refresh(req, res) {
+  try {
+    const body = await getBody(req);
+
+    const result = await authService.refresh(body.refreshToken);
+
+    res.statusCode = 200;
+
+    res.end(JSON.stringify(result));
+  } catch (err) {
+    res.statusCode = 401;
+
+    res.end(
+      JSON.stringify({
+        message: err.message,
+      }),
+    );
+  }
+}
+
+async function logout(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const result = await authService.logout(userId);
+
+    res.statusCode = 200;
+
+    res.end(JSON.stringify(result));
+  } catch (err) {
+    res.statusCode = 400;
+
+    res.end(
+      JSON.stringify({
+        message: err.message,
+      }),
+    );
+  }
+}
 
 module.exports = {
   register,
   login,
+  refresh,
+  logout,
 };
